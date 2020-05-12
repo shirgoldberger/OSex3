@@ -1,0 +1,28 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/shirgold/CLionProjects/OSex3/ex32.c
+stdio.h
+-
+fcntl.h
+-
+stdlib.h
+-
+unistd.h
+-
+dirent.h
+-
+memory.h
+-
+wait.h
+-
+errno.h
+-
+stdbool.h
+-
+

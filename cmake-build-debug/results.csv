@@ -1,0 +1,37 @@
+
+Exellent gets 100,0,
+Wrong output gets 50,0,
+TIMEOUT gets 20,0,
+Compilation Error gets 10,10,COMPILATION_ERROR
+NO C FILE gets 0,0,NO_C_FILE
+Similar output gets 75,0,
+Exellent gets 100,10,COMPILATION_ERROR
+Wrong output gets 50,10,COMPILATION_ERROR
+TIMEOUT gets 20,10,COMPILATION_ERROR
+Compilation Error gets 10,10,COMPILATION_ERROR
+NO C FILE gets 0,0,NO_C_FILE
+Similar output gets 75,10,COMPILATION_ERROR
+Exellent gets 100,0,
+Wrong output gets 50,0,
+TIMEOUT gets 20,0,
+Compilation Error gets 10,10,COMPILATION_ERROR
+NO C FILE gets 0,0,NO_C_FILE
+Similar output gets 75,0,
+Exellent gets 100,0,
+Wrong output gets 50,0,
+TIMEOUT gets 20,0,
+Compilation Error gets 10,10,COMPILATION_ERROR
+NO C FILE gets 0,0,NO_C_FILE
+Similar output gets 75,0,
+Exellent gets 100,10,COMPILATION_ERROR
+Wrong output gets 50,10,COMPILATION_ERROR
+TIMEOUT gets 20,10,COMPILATION_ERROR
+Compilation Error gets 10,10,COMPILATION_ERROR
+NO C FILE gets 0,0,NO_C_FILE
+Similar output gets 75,10,COMPILATION_ERROR
+Exellent gets 100,0,
+Wrong output gets 50,0,
+TIMEOUT gets 20,0,
+Compilation Error gets 10,10,COMPILATION_ERROR
+NO C FILE gets 0,0,NO_C_FILE
+Similar output gets 75,0,
