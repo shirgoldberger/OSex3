@@ -16,14 +16,13 @@
 #define COMPILATION_ERROR_GRADE 10
 #define COMPILATION_ERROR_STR "COMPILATION_ERROR"
 
-
 typedef struct student {
     char name[SIZE];
     char comment[SIZE];
     int grade;
 } student;
 
-void read_lines(char *argv, char lines[3][150]);
+int read_lines(char *argv, char lines[3][150]);
 
 void run(char *input, char *output, student *s, char *path);
 
@@ -36,15 +35,23 @@ void check_files(char *path, char *input, char *output, student *s);
 void save_student(student *s);
 
 int main(int argc, char *argv[]) {
-    char lines[3][150];
-    read_lines(argv[1], lines);
+    char lines[3][SIZE];
+    if (read_lines(argv[1], lines) == -1) {
+        return -1;
+    }
     run_all_subdirs(lines);
 }
-
-void read_lines(char *argv, char lines[3][150]) {
+/**
+ * @param argv - the name of the configuration file.
+ * @param lines - the array of the lines in the configuration file.
+ * @return 0 if success to read the file and -1 otherwise.
+ */
+int read_lines(char *argv, char lines[3][150]) {
     int fd = open(argv, O_RDONLY);
     char buffer[SIZE * 3];
-    int numRead = read(fd, buffer, sizeof(buffer));
+    if (read(fd, buffer, sizeof(buffer)) == -1) {
+        return -1;
+    }
     int num_line = 0;
     int index_buffer = 0, index_line = 0;
     while (num_line < 3) {
@@ -68,6 +75,7 @@ void read_lines(char *argv, char lines[3][150]) {
         }
         index_buffer++;
     }
+    return 0;
 }
 
 void run_all_subdirs(char lines[3][150]) {
@@ -127,14 +135,14 @@ void check_files(char *path, char *input, char *output, student *s) {
 }
 
 bool is_compile(char *path, struct dirent *pDirent) {
-    pid_t childProc = fork();
+    pid_t pid = fork();
 
     char buffCFile[SIZE] = {0};
     strncpy(buffCFile, path, strlen(path));
     strcat(buffCFile, "/");
     strcat(buffCFile, pDirent->d_name);
 
-    if (childProc == 0) {
+    if (pid == 0) {
         char outputFile[SIZE] = {0};
         strncpy(outputFile, path, strlen(path));
         strcat(outputFile, "/a.out");
@@ -143,7 +151,7 @@ bool is_compile(char *path, struct dirent *pDirent) {
         exit(EXIT_FAILURE);
     } else {
         int status;
-        waitpid(childProc, &status, 0);
+        waitpid(pid, &status, 0);
         if (WEXITSTATUS(status) != 0) {
             return false;
         } else {
@@ -156,10 +164,22 @@ void run(char *input, char *output, student *s, char *path) {
     char exec_file[SIZE];
     strncpy(exec_file, path, strlen(path));
     strcat(exec_file, "/a.out");
+
+
+    pid_t pid = fork();
+    if (pid == 0) {
+        char outputFile[SIZE];
+        char* args[] = {"a.out", output, outputFile, NULL};
+        execvp(exec_file ,args);
+        exit(EXIT_FAILURE);
+    } else {
+        int status;
+        waitpid(pid, &status, 0);
+
+    }
     // check time
     // check output with ex31
 }
-
 
 void save_student(student *s) {
     int results = open("results.csv", O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IRGRP | S_IWGRP | S_IWUSR);
