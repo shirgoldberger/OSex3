@@ -1,6 +1,5 @@
-
 Exellent gets 100,75,SIMILAR‬‬_STR
-Wrong output gets 50,75,SIMILAR‬‬_STR
+Wrong output gets 50,50,WRONG‬‬_STR
 TIMEOUT gets 20,75,SIMILAR‬‬_STR
 Compilation Error gets 10,10,COMPILATION_ERROR
 Similar output gets 75,75,SIMILAR‬‬_STR

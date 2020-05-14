@@ -115,7 +115,7 @@
 //        (*size2)++;
 //    }
 //    // we arrive to the end of the files
-//    if (read(fptr1, &c1, 1) < 0 && read(fptr2, &c2, 1) < 0) {
+//    if (read(fptr1, &c1, 1) == 0 && read(fptr2, &c2, 1) == 0) {
 //        // files are equal
 //        if (identical) {
 //            close_files(fptr1, fptr2);

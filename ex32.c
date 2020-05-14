@@ -176,11 +176,11 @@ bool is_compile(char path[], struct dirent *pDirent) {
 
     if (pid == 0) {
         char outputFile[SIZE] = {0};
-        strncpy(outputFile, path, strlen(path));
-        strcat(outputFile, "/a.out");
+        //strncpy(outputFile, path, strlen(path));
+        strcat(outputFile, "a.out");
         char *command[5] = {"gcc", "-o", outputFile, buffCFile};
         execvp("gcc", command);
-        exit(EXIT_FAILURE);
+        exit(-1);
     } else {
         int status;
         waitpid(pid, &status, 0);
@@ -195,7 +195,7 @@ bool is_compile(char path[], struct dirent *pDirent) {
 void run(char *input, char *output, student *s, char *path) {
     char exec_file[SIZE];
     strncpy(exec_file, path, strlen(path));
-    strcat(exec_file, "./a.out");
+    strcat(exec_file, "/a.out");
     char outputFile[SIZE] = {0};
     //a file for the outputs
     strncpy(outputFile, path, strlen(path));
@@ -225,25 +225,26 @@ void run(char *input, char *output, student *s, char *path) {
         }
 
         char *args[2] = {"a.out", NULL};
-        execvp("./a.out", args);
+        execvp("dfg", args);
         close(in);
         close(out);
-        exit(EXIT_FAILURE);
+        exit(-1);
     } else {
         int status;
-        time(&start);
+//        time(&start);
         waitpid(pid, &status, 0);
-        time(&end);
-        dif = difftime(end, start);
-        if (dif > 3) {
-            s->grade = 20;
-            strcpy(s->comment, "TIMEOUT");
-        }
+//        time(&end);
+//        dif = difftime(end, start);
+//        if (dif > 3) {
+//            s->grade = 20;
+//            strcpy(s->comment, "TIMEOUT");
+//        }
+        compare_output(output, outputFile, s, path);
     }
     // check time
     // check output with ex31
 
-    compare_output(output, outputFile, s, path);
+
 }
 
 void compare_output(char *output, char *outputFile, student *s, char *path) {
@@ -252,9 +253,9 @@ void compare_output(char *output, char *outputFile, student *s, char *path) {
     // child process
     if (child == 0) {
         // run ex31.c
-        char *args[] = {output, outputFile, NULL};
+        char *args[] = {"./comp.out", output, outputFile, NULL};
         execvp("./comp.out", args);
-        exit(EXIT_SUCCESS);
+        exit(-1);
     }
 
     int status;
