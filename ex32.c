@@ -45,9 +45,7 @@ void check_files(char *path, char *input, char *output, student *s);
 
 void save_student(student *s);
 
-void compare_output(char *output, char *outputFile, student *s, char *path);
-
-void close_files(int f1, int f2);
+void compare_output(char *output, char *outputFile, student *s);
 
 int main(int argc, char *argv[]) {
     char lines[3][SIZE];
@@ -170,6 +168,12 @@ void check_files(char *path, char *input, char *output, student *s) {
     }
 }
 
+/**
+ * checks if we can compile the given file.
+ * @param path - path to the student's directory.
+ * @param pDirent - the c file.
+ * @return true if the file is compile and false otherwise.
+ */
 bool is_compile(char path[], struct dirent *pDirent) {
     pid_t pid = fork();
 
@@ -195,18 +199,19 @@ bool is_compile(char path[], struct dirent *pDirent) {
     }
 }
 
+/**
+ * run the program.
+ * @param input - the input file to the student's program.
+ * @param output - the name of the file that contains the correct output.
+ * @param s - struct of student.
+ * @param path - path to the student's directory.
+ */
 void run(char *input, char *output, student *s, char *path) {
-    char exec_file[SIZE];
-    strncpy(exec_file, path, strlen(path));
-    strcat(exec_file, "/a.out");
     char outputFile[SIZE] = {0};
-    //a file for the outputs
     strncpy(outputFile, path, strlen(path));
     strcat(outputFile, "/out.txt");
     time_t start, end;
     double dif;
-
-
     pid_t pid = fork();
     if (pid == 0) {
         //get the input file
@@ -238,21 +243,26 @@ void run(char *input, char *output, student *s, char *path) {
         waitpid(pid, &status, 0);
         time(&end);
         dif = difftime(end, start);
+        // check time
         if (dif > 3) {
             s->grade = 20;
             strcpy(s->comment, "TIMEOUT");
         } else {
-            compare_output(output, outputFile, s, path);
+            // check output with ex31
+            compare_output(output, outputFile, s);
         }
 
     }
-    // check time
-    // check output with ex31
-
-
 }
 
-void compare_output(char *output, char *outputFile, student *s, char *path) {
+/**
+ * run ex31.c to compare the student's output to the correct output and save
+ * his grade according to the returned value.
+ * @param output - the name of the file that contains the correct output.
+ * @param outputFile - the name of the file that contains the student's output.
+ * @param s - struct of student.
+ */
+void compare_output(char *output, char *outputFile, student *s) {
     int score;
     pid_t child = fork();
     // child process
@@ -262,7 +272,6 @@ void compare_output(char *output, char *outputFile, student *s, char *path) {
         execvp("./comp.out", args);
         exit(-1);
     }
-
     int status;
     waitpid(child, &status, 0);
     //if compilation error not success
@@ -284,6 +293,10 @@ void compare_output(char *output, char *outputFile, student *s, char *path) {
     }
 }
 
+/**
+ * save the students in the file 'results.csv'
+ * @param s - struct of student
+ */
 void save_student(student *s) {
     if (strcmp(s->comment, "") == 0) {
         return;
@@ -304,14 +317,4 @@ void save_student(student *s) {
     // write to file
     int in = write(results, output, strlen(output));
     close(results);
-}
-
-/**
- * close the files.
- * @param f1 - file descriptor of first file.
- * @param f2 - file descriptor of second file.
- */
-void close_files(int f1, int f2) {
-    close(f1);
-    close(f2);
 }
