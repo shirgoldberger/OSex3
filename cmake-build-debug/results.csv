@@ -1,16 +1,6 @@
 
-Exellent gets 100,0,
-Wrong output gets 50,0,
-TIMEOUT gets 20,0,
+Exellent gets 100,75,SIMILAR‬‬_STR
+Wrong output gets 50,75,SIMILAR‬‬_STR
+TIMEOUT gets 20,75,SIMILAR‬‬_STR
 Compilation Error gets 10,10,COMPILATION_ERROR
-Similar output gets 75,0,
-Exellent gets 100,0,
-Wrong output gets 50,0,
-TIMEOUT gets 20,0,
-Compilation Error gets 10,10,COMPILATION_ERROR
-Similar output gets 75,0,
-Exellent gets 100,0,
-Wrong output gets 50,0,
-TIMEOUT gets 20,0,
-Compilation Error gets 10,10,COMPILATION_ERROR
-Similar output gets 75,0,
+Similar output gets 75,75,SIMILAR‬‬_STR
