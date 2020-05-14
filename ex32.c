@@ -14,12 +14,16 @@
 #define NO_C_FILE_STR "NO_C_FILE"
 #define COMPILATION_ERROR_GRADE 10
 #define COMPILATION_ERROR_STR "COMPILATION_ERROR"
+//// 1
 //#define ‫‪WRONG_GRADE 50
 //#define ‫‪WRONG‬‬_STR "‫‪WRONG‬‬"
+//// 2
 //#define SIMILAR_GRADE 75
 //#define ‫‪SIMILAR‬‬_STR "‫‪SIMILAR‬‬"
+//// 3
 //#define ‫‪EXCELLENT‬‬_GRADE 100
 //#define ‫‪EXCELLENT‬‬_STR "‫‪EXCELLENT‬‬"
+//// 4
 //#define TIMEOUT_GRADE 20
 //#define TIMEOUT_STR "TIMEOUT"
 
@@ -176,7 +180,6 @@ bool is_compile(char path[], struct dirent *pDirent) {
 
     if (pid == 0) {
         char outputFile[SIZE] = {0};
-        //strncpy(outputFile, path, strlen(path));
         strcat(outputFile, "a.out");
         char *command[5] = {"gcc", "-o", outputFile, buffCFile};
         execvp("gcc", command);
@@ -224,22 +227,24 @@ void run(char *input, char *output, student *s, char *path) {
             exit(EXIT_FAILURE);
         }
 
-        char *args[2] = {"a.out", NULL};
-        execvp("dfg", args);
+        char *args[2] = {"./a.out", NULL};
+        execvp("./a.out", args);
         close(in);
         close(out);
         exit(-1);
     } else {
         int status;
-//        time(&start);
+        time(&start);
         waitpid(pid, &status, 0);
-//        time(&end);
-//        dif = difftime(end, start);
-//        if (dif > 3) {
-//            s->grade = 20;
-//            strcpy(s->comment, "TIMEOUT");
-//        }
-        compare_output(output, outputFile, s, path);
+        time(&end);
+        dif = difftime(end, start);
+        if (dif > 3) {
+            s->grade = 20;
+            strcpy(s->comment, "TIMEOUT");
+        } else {
+            compare_output(output, outputFile, s, path);
+        }
+
     }
     // check time
     // check output with ex31
@@ -269,13 +274,13 @@ void compare_output(char *output, char *outputFile, student *s, char *path) {
 
     if (score == 1) { // identical
         s->grade = 100;
-        strcpy(s->comment, "EXCELLENT‬‬_STR");
+        strcpy(s->comment, "EXCELLENT‬‬");
     } else if (score == 2) { // different
         s->grade = 50;
-        strcpy(s->comment, "WRONG‬‬_STR");
+        strcpy(s->comment, "WRONG‬‬");
     } else if (score == 3) { // similar
         s->grade = 75;
-        strcpy(s->comment, "SIMILAR‬‬_STR");
+        strcpy(s->comment, "SIMILAR");
     }
 }
 
