@@ -14,7 +14,10 @@
 #define NO_C_FILE_STR "NO_C_FILE"
 #define COMPILATION_ERROR_GRADE 10
 #define COMPILATION_ERROR_STR "COMPILATION_ERROR"
-//// 1
+#define TIMEOUT_GRADE 20
+#define TIMEOUT_STR "TIMEOUT"
+
+// 1
 //#define ‫‪WRONG_GRADE 50
 //#define ‫‪WRONG‬‬_STR "‫‪WRONG‬‬"
 //// 2
@@ -23,11 +26,9 @@
 //// 3
 //#define ‫‪EXCELLENT‬‬_GRADE 100
 //#define ‫‪EXCELLENT‬‬_STR "‫‪EXCELLENT‬‬"
-//// 4
-//#define TIMEOUT_GRADE 20
-//#define TIMEOUT_STR "TIMEOUT"
 
 typedef struct student {
+    // name of the directory of the student
     char name[SIZE];
     char comment[SIZE];
     int grade;
@@ -47,10 +48,13 @@ void save_student(student *s);
 
 void compare_output(char *output, char *outputFile, student *s);
 
+void finish();
+
 int main(int argc, char *argv[]) {
     char lines[3][SIZE];
     read_lines(argv[1], lines);
     run_all_subdirs(lines);
+
     return 0;
 }
 
@@ -109,6 +113,7 @@ void run_all_subdirs(char lines[3][150]) {
     struct dirent *pDirent;
     // open the dir we got in the configuration file
     if ((pDir = opendir(lines[0])) == NULL) {
+        write(2, "error with open directory", strlen("error with open configuration file"));
         exit(-1);
     }
     while ((pDirent = readdir(pDir)) != NULL) {
@@ -246,12 +251,14 @@ void run(char *input, char *output, student *s, char *path) {
         dif = difftime(end, start);
         // check time
         if (dif > 3) {
-            s->grade = 20;
-            strcpy(s->comment, "TIMEOUT");
+            s->grade = TIMEOUT_GRADE;
+            strcpy(s->comment, TIMEOUT_STR);
         } else {
             // check output with ex31
             compare_output(output, outputFile, s);
         }
+        // delete output file
+
 
     }
 }
@@ -275,7 +282,7 @@ void compare_output(char *output, char *outputFile, student *s) {
     }
     int status;
     waitpid(child, &status, 0);
-    //if compilation error not success
+    // if compilation error not success
     if (WEXITSTATUS(status) == 0) {
         return;
     } else {
@@ -318,4 +325,8 @@ void save_student(student *s) {
     // write to file
     int in = write(results, output, strlen(output));
     close(results);
+}
+
+void finish() {
+
 }
