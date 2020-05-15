@@ -100,7 +100,8 @@ void read_lines(char *argv, char lines[3][150]) {
 }
 
 /**
- *
+ * for each directory, save the name in struct of student
+ * and send to check the student's files.
  * @param lines - the array of the lines in the configuration file.
  */
 void run_all_subdirs(char lines[3][150]) {
@@ -135,7 +136,7 @@ void run_all_subdirs(char lines[3][150]) {
 }
 
 /**
- *
+ * checks if there is a c file and send him to running.
  * @param path - path to the student's directory.
  * @param input - path to the input file in the configuration file.
  * @param output - path to the correct output file.
