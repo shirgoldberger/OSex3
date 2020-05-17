@@ -17,7 +17,7 @@
 #define TIMEOUT_GRADE 20
 #define TIMEOUT_STR "TIMEOUT"
 
-// 1
+//// 1
 //#define ‫‪WRONG_GRADE 50
 //#define ‫‪WRONG‬‬_STR "‫‪WRONG‬‬"
 //// 2
@@ -34,7 +34,9 @@ typedef struct student {
     int grade;
 } student;
 
-void read_lines(char *argv, char lines[3][150]);
+void read_lines(char *argv, char lines[3][SIZE]);
+
+void check_lines(char lines[3][SIZE]);
 
 void run(char *input, char *output, student *s, char *path);
 
@@ -53,6 +55,7 @@ void finish();
 int main(int argc, char *argv[]) {
     char lines[3][SIZE];
     read_lines(argv[1], lines);
+    check_lines(lines);
     run_all_subdirs(lines);
 
     return 0;
@@ -64,7 +67,7 @@ int main(int argc, char *argv[]) {
  * @param lines - the array of the lines in the configuration file.
  * @return 0 if success to read the file and -1 otherwise.
  */
-void read_lines(char *argv, char lines[3][150]) {
+void read_lines(char *argv, char lines[3][SIZE]) {
     int fd = open(argv, O_RDONLY);
     if (fd == -1) {
         write(2, "error with open configuration file", strlen("error with open configuration file"));
@@ -104,6 +107,19 @@ void read_lines(char *argv, char lines[3][150]) {
 }
 
 /**
+ * check if the ines in the configuration file are valid.
+ * @param lines - the array of the lines in the configuration file.
+ */
+void check_lines(char lines[3][SIZE]) {
+    int fd1 = open(lines[1], O_RDONLY);
+    int fd2 = open(lines[2], O_RDONLY);
+    if (fd1 < 0 || fd2 < 0) {
+        write(2, "Input/output File not exist\n", strlen("Input/output File not exist\n"));
+        exit(-1);
+    }
+}
+
+/**
  * for each directory, save the name in struct of student
  * and send to check the student's files.
  * @param lines - the array of the lines in the configuration file.
@@ -113,7 +129,7 @@ void run_all_subdirs(char lines[3][150]) {
     struct dirent *pDirent;
     // open the dir we got in the configuration file
     if ((pDir = opendir(lines[0])) == NULL) {
-        write(2, "error with open directory", strlen("error with open configuration file"));
+        write(2, "Not a valid directory\n", strlen("Not a valid directory\n"));
         exit(-1);
     }
     while ((pDirent = readdir(pDir)) != NULL) {
@@ -152,10 +168,12 @@ void check_files(char *path, char *input, char *output, student *s) {
     DIR *dirc;
     // open the dir of the student
     if ((dirc = opendir(path)) == NULL) {
+        write(2, "can't open directory\n", strlen("can't open directory\n"));
         exit(-1);
     }
     bool has_CFile = false;
     while ((pDirent = readdir(dirc)) != NULL) {
+        // check if this is a c file
         if (strcmp(pDirent->d_name + (strlen(pDirent->d_name)) - 2, ".c") == 0) {
             has_CFile = true;
             bool isCompileFile = is_compile(path, pDirent);
@@ -182,17 +200,15 @@ void check_files(char *path, char *input, char *output, student *s) {
  */
 bool is_compile(char path[], struct dirent *pDirent) {
     pid_t pid = fork();
-
-    char buffCFile[SIZE] = {0};
-    strncpy(buffCFile, path, strlen(path));
-    strcat(buffCFile, "/");
-    strcat(buffCFile, pDirent->d_name);
-
+    // child process
     if (pid == 0) {
-        char outputFile[SIZE] = {0};
-        strcat(outputFile, "a.out");
-        char *command[5] = {"gcc", "-o", outputFile, buffCFile};
-        execvp("gcc", command);
+        // create the path of the c file
+        char CFile_path[SIZE] = {0};
+        strncpy(CFile_path, path, strlen(path));
+        strcat(CFile_path, "/");
+        strcat(CFile_path, pDirent->d_name);
+        char *args[3] = {"gcc", CFile_path, NULL};
+        execvp("gcc", args);
         exit(-1);
     } else {
         int status;
@@ -219,13 +235,12 @@ void run(char *input, char *output, student *s, char *path) {
     time_t start, end;
     double dif;
     pid_t pid = fork();
+    // child process
     if (pid == 0) {
         //get the input file
         int in = open(input, O_RDONLY);
-
         //get the output file
         int out = open(outputFile, O_WRONLY | O_TRUNC | O_CREAT, S_IRUSR | S_IRGRP | S_IWGRP | S_IWUSR);
-
         if (dup2(in, STDIN_FILENO) == -1) {
             //PRINT_ERROR
             close(in);
@@ -310,6 +325,10 @@ void save_student(student *s) {
         return;
     }
     int results = open("results.csv", O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IRGRP | S_IWGRP | S_IWUSR);
+    if (results < 0) {
+        write(2, "can't open file\n", strlen("can't open file\n"));
+        exit(-1);
+    }
     char output[SIZE] = {0};
     // name
     strcat(output, s->name);
@@ -324,6 +343,10 @@ void save_student(student *s) {
     strcat(output, "\n");
     // write to file
     int in = write(results, output, strlen(output));
+    if (in < 0) {
+        write(2, "error write to the file\n", strlen("error write to the file\n"));
+        exit(-1);
+    }
     close(results);
 }
 
