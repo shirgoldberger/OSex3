@@ -50,14 +50,13 @@ void save_student(student *s);
 
 void compare_output(char *output, char *outputFile, student *s);
 
-void finish();
+void delete_file(char *path);
 
 int main(int argc, char *argv[]) {
     char lines[3][SIZE];
     read_lines(argv[1], lines);
     check_lines(lines);
     run_all_subdirs(lines);
-
     return 0;
 }
 
@@ -104,6 +103,7 @@ void read_lines(char *argv, char lines[3][SIZE]) {
         }
         index_buffer++;
     }
+    close(fd);
 }
 
 /**
@@ -116,6 +116,13 @@ void check_lines(char lines[3][SIZE]) {
     if (fd1 < 0 || fd2 < 0) {
         write(2, "Input/output File not exist\n", strlen("Input/output File not exist\n"));
         exit(-1);
+    }
+    // close files
+    if (fd1 >= 0) {
+        close(fd1);
+    }
+    if (fd2 >= 0) {
+        close(fd2);
     }
 }
 
@@ -154,6 +161,7 @@ void run_all_subdirs(char lines[3][150]) {
         }
     }
     closedir(pDir);
+    delete_file("a.out");
 }
 
 /**
@@ -165,14 +173,14 @@ void run_all_subdirs(char lines[3][150]) {
  */
 void check_files(char *path, char *input, char *output, student *s) {
     struct dirent *pDirent;
-    DIR *dirc;
+    DIR *pDir;
     // open the dir of the student
-    if ((dirc = opendir(path)) == NULL) {
+    if ((pDir = opendir(path)) == NULL) {
         write(2, "can't open directory\n", strlen("can't open directory\n"));
         exit(-1);
     }
     bool has_CFile = false;
-    while ((pDirent = readdir(dirc)) != NULL) {
+    while ((pDirent = readdir(pDir)) != NULL) {
         // check if this is a c file
         if (strcmp(pDirent->d_name + (strlen(pDirent->d_name)) - 2, ".c") == 0) {
             has_CFile = true;
@@ -190,6 +198,7 @@ void check_files(char *path, char *input, char *output, student *s) {
         s->grade = NO_C_FILE_GRADE;
         strcpy(s->comment, NO_C_FILE_STR);
     }
+    closedir(pDir);
 }
 
 /**
@@ -237,22 +246,31 @@ void run(char *input, char *output, student *s, char *path) {
     pid_t pid = fork();
     // child process
     if (pid == 0) {
-        //get the input file
+        // get the input file
         int in = open(input, O_RDONLY);
-        //get the output file
+        if (in < 0) {
+            write(2, "Error in system call\n", strlen("Error in system call\n"));
+            exit(EXIT_FAILURE);
+        }
+        // get the output file
         int out = open(outputFile, O_WRONLY | O_TRUNC | O_CREAT, S_IRUSR | S_IRGRP | S_IWGRP | S_IWUSR);
+        if (out < 0) {
+            close(in);
+            write(2, "Error in system call\n", strlen("Error in system call\n"));
+            exit(EXIT_FAILURE);
+        }
         if (dup2(in, STDIN_FILENO) == -1) {
-            //PRINT_ERROR
+            write(2, "Error in system call\n", strlen("Error in system call\n"));
             close(in);
             close(out);
             exit(EXIT_FAILURE);
         }
         if (dup2(out, STDOUT_FILENO) == -1) {
-            //PRINT_ERROR
+            write(2, "Error in system call\n", strlen("Error in system call\n"));
+            close(in);
             close(out);
             exit(EXIT_FAILURE);
         }
-
         char *args[2] = {"./a.out", NULL};
         execvp("./a.out", args);
         close(in);
@@ -273,7 +291,7 @@ void run(char *input, char *output, student *s, char *path) {
             compare_output(output, outputFile, s);
         }
         // delete output file
-
+        delete_file(outputFile);
 
     }
 }
@@ -287,32 +305,38 @@ void run(char *input, char *output, student *s, char *path) {
  */
 void compare_output(char *output, char *outputFile, student *s) {
     int score;
-    pid_t child = fork();
-    // child process
-    if (child == 0) {
+    pid_t pid = fork();
+    if (pid < 0) {
+        write(2, "Error in system call\n", strlen("Error in system call\n"));
+    } else if (pid == 0) {
         // run ex31.c
         char *args[] = {"./comp.out", output, outputFile, NULL};
         execvp("./comp.out", args);
         exit(-1);
-    }
-    int status;
-    waitpid(child, &status, 0);
-    // if compilation error not success
-    if (WEXITSTATUS(status) == 0) {
-        return;
     } else {
-        score = WEXITSTATUS(status);
-    }
+        int status = 0;
+        int wait = waitpid(pid, &status, 0);
+        if (wait < 0) {
+            write(2, "Error in system call\n", strlen("Error in system call\n"));
+            return;
+        }
+        // if compilation error not success
+        if (WEXITSTATUS(status) == 0) {
+            return;
+        } else {
+            score = WEXITSTATUS(status);
+        }
 
-    if (score == 1) { // identical
-        s->grade = 100;
-        strcpy(s->comment, "EXCELLENT‬‬");
-    } else if (score == 2) { // different
-        s->grade = 50;
-        strcpy(s->comment, "WRONG‬‬");
-    } else if (score == 3) { // similar
-        s->grade = 75;
-        strcpy(s->comment, "SIMILAR");
+        if (score == 1) { // identical
+            s->grade = 100;
+            strcpy(s->comment, "EXCELLENT‬‬");
+        } else if (score == 2) { // different
+            s->grade = 50;
+            strcpy(s->comment, "WRONG‬‬");
+        } else if (score == 3) { // similar
+            s->grade = 75;
+            strcpy(s->comment, "SIMILAR");
+        }
     }
 }
 
@@ -326,8 +350,8 @@ void save_student(student *s) {
     }
     int results = open("results.csv", O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IRGRP | S_IWGRP | S_IWUSR);
     if (results < 0) {
-        write(2, "can't open file\n", strlen("can't open file\n"));
-        exit(-1);
+        write(2, "Error in system call\n", strlen("Error in system call\n"));
+        return;
     }
     char output[SIZE] = {0};
     // name
@@ -344,12 +368,26 @@ void save_student(student *s) {
     // write to file
     int in = write(results, output, strlen(output));
     if (in < 0) {
-        write(2, "error write to the file\n", strlen("error write to the file\n"));
-        exit(-1);
+        write(2, "Error in system call\n", strlen("Error in system call\n"));
+        return;
     }
     close(results);
 }
 
-void finish() {
-
+void delete_file(char *path) {
+    int status = 0;
+    pid_t pid = fork();
+    if (pid < 0) {
+        write(2, "Error in system call\n", strlen("Error in system call\n"));
+    } else if (pid == 0) {
+        char *args[4] = {"rm", "-rf", path, NULL};
+        if (execvp("rm", args) < 0) {
+            write(2, "Error in system call\n", strlen("Error in system call\n"));
+        }
+    } else {
+        int wait = waitpid(pid, &status, 0);
+        if (wait < 0) {
+            write(2, "Error in system call\n", strlen("Error in system call\n"));
+        }
+    }
 }
