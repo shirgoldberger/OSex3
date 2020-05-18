@@ -39,20 +39,23 @@ void close_files(int f1, int f2) {
  */
 int run(char *argv1, char *argv2) {
     int fptr1, fptr2;
-    // open files
+    // open first file
     fptr1 = open(argv1, O_RDONLY);
+    // first file did not open
     if (fptr1 < 0) {
         write(2, "Error in system call\n", strlen("Error in system call\n"));
-        exit(-1);
+        exit(ERROR);
     }
-    if (fptr1 < 0) {
-        write(2, "Error in system call\n", strlen("Error in system call\n"));
-        exit(-1);
-    }
+    // open second file
     fptr2 = open(argv2, O_RDONLY);
+    // second file did not open
+    if (fptr2 < 0) {
+        write(2, "Error in system call\n", strlen("Error in system call\n"));
+        close(fptr1);
+        exit(ERROR);
+    }
     char c1, c2;
     int size_file1 = 0, size_file2 = 0;
-    double size_min_file;
     // check if identical
     bool identical = check_identical(fptr1, fptr2, &size_file1, &size_file2);
     if (identical) {
@@ -62,7 +65,8 @@ int run(char *argv1, char *argv2) {
         return SIMILAR;
     }
     // save the min size for check if the files are similar
-    size_min_file = (size_file1 < size_file2) ? size_file1 : size_file2;
+    double size_min_file = (size_file1 < size_file2) ? size_file1 : size_file2;
+    // count the equals char of some offset of the files
     double count_equal;
     int offset2, offset1 = 0;
     int seek;
@@ -70,7 +74,11 @@ int run(char *argv1, char *argv2) {
         offset1++;
         read(fptr1, &c1, 1);
         // start from the beginning of the second file
-        lseek(fptr2, 0, SEEK_SET);
+        if (lseek(fptr2, 0, SEEK_SET) == -1) {
+            close_files(fptr1, fptr2);
+            write(2, "Error in system call\n", strlen("Error in system call\n"));
+            exit(ERROR);
+        }
         offset2 = 0;
         while ((seek = lseek(fptr2, offset2, SEEK_SET)) != -1 && offset2 != size_file2) {
             read(fptr2, &c2, 1);
@@ -91,13 +99,13 @@ int run(char *argv1, char *argv2) {
             }
         }
         if (seek == -1) {
-            fprintf(stderr, "lseek failed");
+            write(2, "Error in system call\n", strlen("Error in system call\n"));
             close_files(fptr1, fptr2);
             return ERROR;
         }
     }
     if (seek == -1) {
-        fprintf(stderr, "lseek failed");
+        write(2, "Error in system call\n", strlen("Error in system call\n"));
         close_files(fptr1, fptr2);
         return ERROR;
     }
@@ -141,14 +149,3 @@ bool check_identical(int fptr1, int fptr2, int *size1, int *size2) {
     }
     return false;
 }
-
-
-
-//#define TIMEOUT_GRADE 20
-//#define TIMEOUT_STR "TIMEOUT"
-//#define ‫‪WRONG‬‬_GRADE 50
-//#define ‫‪WRONG‬‬_STR "‫‪WRONG‬‬"
-//#define ‫‪SIMILAR‬‬_GRADE 75
-//#define ‫‪SIMILAR‬‬_STR "‫‪SIMILAR‬‬"
-//#define ‫‪EXCELLENT‬‬_GRADE 100
-//#define ‫‪EXCELLENT‬‬_STR "‫‪EXCELLENT‬‬"
