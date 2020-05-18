@@ -134,7 +134,7 @@ void run_all_subdirs(char lines[3][150]) {
     // open the dir we got in the configuration file
     if ((pDir = opendir(lines[0])) == NULL) {
         write(2, "Not a valid directory\n", strlen("Not a valid directory\n"));
-        exit(-1);
+        exit(ERROR);
     }
     while ((pDirent = readdir(pDir)) != NULL) {
         if (!strcmp(pDirent->d_name, "..") || !strcmp(pDirent->d_name, ".")) {
@@ -174,7 +174,7 @@ void check_files(char *path, char *input, char *output, student *s) {
     // open the dir of the student
     if ((pDir = opendir(path)) == NULL) {
         write(2, "can't open directory\n", strlen("can't open directory\n"));
-        exit(-1);
+        return;
     }
     bool has_CFile = false;
     while ((pDirent = readdir(pDir)) != NULL) {
@@ -214,13 +214,17 @@ bool is_compile(char path[], struct dirent *pDirent) {
         strcat(CFile_path, "/");
         strcat(CFile_path, pDirent->d_name);
         char *args[3] = {"gcc", CFile_path, NULL};
-        execvp("gcc", args);
+        if (execvp("gcc", args) < 0) {
+            write(2, "Error in system call\n", strlen("Error in system call\n"));
+        }
         exit(-1);
     } else {
         int status;
         waitpid(pid, &status, 0);
+        // not compile
         if (WEXITSTATUS(status) != 0) {
             return false;
+        // compile
         } else {
             return true;
         }
@@ -241,8 +245,9 @@ void run(char *input, char *output, student *s, char *path) {
     time_t start, end;
     double dif;
     pid_t pid = fork();
-    // child process
-    if (pid == 0) {
+    if (pid < 0) {
+        write(2, "Error in system call\n", strlen("Error in system call\n"));
+    } else if (pid == 0) {
         // get the input file
         int in = open(input, O_RDONLY);
         if (in < 0) {
@@ -276,7 +281,11 @@ void run(char *input, char *output, student *s, char *path) {
     } else {
         int status;
         time(&start);
-        waitpid(pid, &status, 0);
+        int wait = waitpid(pid, &status, 0);
+        if (wait < 0) {
+            write(2, "Error in system call\n", strlen("Error in system call\n"));
+            return;
+        }
         time(&end);
         dif = difftime(end, start);
         // check time
@@ -289,7 +298,6 @@ void run(char *input, char *output, student *s, char *path) {
         }
         // delete output file
         delete_file(outputFile);
-
     }
 }
 
