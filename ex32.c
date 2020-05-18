@@ -206,8 +206,9 @@ void check_files(char *path, char *input, char *output, student *s) {
  */
 bool is_compile(char path[], struct dirent *pDirent) {
     pid_t pid = fork();
-    // child process
-    if (pid == 0) {
+    if (pid < 0) {
+        write(2, "Error in system call\n", strlen("Error in system call\n"));
+    } else if (pid == 0) {
         // create the path of the c file
         char CFile_path[SIZE] = {0};
         strncpy(CFile_path, path, strlen(path));
@@ -217,10 +218,13 @@ bool is_compile(char path[], struct dirent *pDirent) {
         if (execvp("gcc", args) < 0) {
             write(2, "Error in system call\n", strlen("Error in system call\n"));
         }
-        exit(-1);
+        exit(EXIT_FAILURE);
     } else {
         int status;
-        waitpid(pid, &status, 0);
+        int wait = waitpid(pid, &status, 0);
+        if (wait < 0) {
+            write(2, "Error in system call\n", strlen("Error in system call\n"));
+        }
         // not compile
         if (WEXITSTATUS(status) != 0) {
             return false;
@@ -274,10 +278,12 @@ void run(char *input, char *output, student *s, char *path) {
             exit(EXIT_FAILURE);
         }
         char *args[2] = {"./a.out", NULL};
-        execvp("./a.out", args);
+        if (execvp("./a.out", args) < 0) {
+            write(2, "Error in system call\n", strlen("Error in system call\n"));
+        }
         close(in);
         close(out);
-        exit(-1);
+        exit(EXIT_FAILURE);
     } else {
         int status;
         time(&start);
@@ -316,8 +322,10 @@ void compare_output(char *output, char *outputFile, student *s) {
     } else if (pid == 0) {
         // run ex31.c
         char *args[] = {"./comp.out", output, outputFile, NULL};
-        execvp("./comp.out", args);
-        exit(-1);
+        if (execvp("./comp.out", args) < 0) {
+            write(2, "Error in system call\n", strlen("Error in system call\n"));
+        }
+        exit(EXIT_FAILURE);
     } else {
         int status = 0;
         int wait = waitpid(pid, &status, 0);
