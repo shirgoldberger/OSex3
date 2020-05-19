@@ -229,7 +229,7 @@ bool is_compile(char path[], struct dirent *pDirent) {
         // not compile
         if (WEXITSTATUS(status) != 0) {
             return false;
-        // compile
+            // compile
         } else {
             return true;
         }
@@ -355,8 +355,8 @@ void compare_output(char *output, char *outputFile, student *s) {
 }
 
 /**
- * save the students in the file 'results.csv'
- * @param s - struct of student
+ * save the students in the file 'results.csv'.
+ * @param s - struct of student.
  */
 void save_student(student *s) {
     if (strcmp(s->comment, "") == 0) {
@@ -388,6 +388,10 @@ void save_student(student *s) {
     close(results);
 }
 
+/**
+ * delete file.
+ * @param path - the path of the file we want to delete.
+ */
 void delete_file(char *path) {
     int status = 0;
     pid_t pid = fork();

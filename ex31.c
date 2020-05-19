@@ -114,7 +114,7 @@ int run(char *argv1, char *argv2) {
 }
 
 /**
- *
+ * check if the files are identical and calculate the length of the files.
  * @param fptr1 - file descriptor of first file.
  * @param fptr2 - file descriptor of second file.
  * @param size1 - the size of the first file.
