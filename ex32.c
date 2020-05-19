@@ -158,7 +158,7 @@ void run_all_subdirs(char lines[3][150]) {
         }
     }
     closedir(pDir);
-    delete_file("a.out");
+    delete_file("student.out");
 }
 
 /**
@@ -215,7 +215,7 @@ bool is_compile(char path[], struct dirent *pDirent) {
         strncpy(CFile_path, path, strlen(path));
         strcat(CFile_path, "/");
         strcat(CFile_path, pDirent->d_name);
-        char *args[3] = {"gcc", CFile_path, NULL};
+        char *args[5] = {"gcc", "-o", "student.out", CFile_path, NULL};
         if (execvp("gcc", args) < 0) {
             write(2, "Error in system call\n", strlen("Error in system call\n"));
         }
@@ -278,8 +278,8 @@ void run(char *input, char *output, student *s, char *path) {
             close(out);
             exit(EXIT_FAILURE);
         }
-        char *args[2] = {"./a.out", NULL};
-        if (execvp("./a.out", args) < 0) {
+        char *args[2] = {"./student.out", NULL};
+        if (execvp("./student.out", args) < 0) {
             write(2, "Error in system call\n", strlen("Error in system call\n"));
         }
         close(in);
