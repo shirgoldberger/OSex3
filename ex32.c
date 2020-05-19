@@ -208,6 +208,7 @@ bool is_compile(char path[], struct dirent *pDirent) {
     pid_t pid = fork();
     if (pid < 0) {
         write(2, "Error in system call\n", strlen("Error in system call\n"));
+        return false;
     } else if (pid == 0) {
         // create the path of the c file
         char CFile_path[SIZE] = {0};
