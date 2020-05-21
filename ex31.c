@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <stdbool.h>
 #include <stdlib.h>
 #include <memory.h>
 
@@ -13,8 +12,6 @@
 void close_files(int f1, int f2);
 
 int run(char *argv1, char *argv2);
-
-bool check_identical(int fptr1, int fptr2, int *size1, int *size2);
 
 int main(int argc, char *argv[]) {
     return run(argv[1], argv[2]);
@@ -55,10 +52,9 @@ int run(char *argv1, char *argv2) {
         exit(ERROR);
     }
     char c1, c2;
-    int size_file1 = 0, size_file2 = 0;
-    // check if identical
-    bool identical = check_identical(fptr1, fptr2, &size_file1, &size_file2);
-    if (identical) {
+    int size_file1 = lseek(fptr1, 0, SEEK_END);
+    int size_file2 = lseek(fptr2, 0, SEEK_END);
+    if (size_file1 == 0 && size_file2 == 0) {
         return IDENTICAL;
     }
     if (size_file1 == 0 || size_file2 == 0) {
@@ -91,6 +87,9 @@ int run(char *argv1, char *argv2) {
                         count_equal++;
                     }
                 }
+                if (count_equal == size_file1 && count_equal == size_file2) {
+                    return IDENTICAL;
+                }
                 // if more than half chars are equals - the files are similar
                 if (count_equal >= size_min_file / 2) {
                     close_files(fptr1, fptr2);
@@ -111,41 +110,4 @@ int run(char *argv1, char *argv2) {
     }
     close_files(fptr1, fptr2);
     return DIFFERENT;
-}
-
-/**
- * check if the files are identical and calculate the length of the files.
- * @param fptr1 - file descriptor of first file.
- * @param fptr2 - file descriptor of second file.
- * @param size1 - the size of the first file.
- * @param size2 - the size of the second file.
- * @return true if the files are identical and false otherwise.
- */
-bool check_identical(int fptr1, int fptr2, int *size1, int *size2) {
-    char c1, c2;
-    bool identical = true;
-    // check if the files are identical and count the size of the files
-    while (read(fptr1, &c1, 1) > 0 && read(fptr2, &c2, 1) > 0) {
-        if (c1 != c2) {
-            identical = false;
-        }
-        (*size1)++;
-        (*size2)++;
-    }
-    // we arrive to the end of the files
-    if (read(fptr1, &c1, 1) == 0 && read(fptr2, &c2, 1) == 0) {
-        // files are equal
-        if (identical) {
-            close_files(fptr1, fptr2);
-            return true;
-        }
-    }
-    // for size of the files
-    while (read(fptr1, &c1, 1) > 0) {
-        (*size1)++;
-    }
-    while (read(fptr2, &c2, 1) > 0) {
-        (*size2)++;
-    }
-    return false;
 }
